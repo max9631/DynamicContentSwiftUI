@@ -21,8 +21,5 @@ let package = Package(
         .target(
             name: "DynamicContent",
             dependencies: []),
-        .testTarget(
-            name: "DynamicContentTests",
-            dependencies: ["DynamicContent"]),
     ]
 )
