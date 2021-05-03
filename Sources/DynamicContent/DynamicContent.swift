@@ -3,18 +3,21 @@ import SwiftUI
 
 
 public enum ContentDefaultState: ContentState {
+    case content
     case loading
     case error(message: String)
     case empty
     
-    public var view: some View {
+    public func viewForState(or content: AnyView) -> some View {
         switch self {
+        case .content:
+            content
         case .loading:
-            return Text("Loading")
+            Text("Loading")
         case let .error(message):
-            return Text("Error \(message)")
+            Text("Error \(message)")
         case .empty:
-            return Text("Empty")
+            Text("Empty")
             
         }
     }
@@ -27,7 +30,9 @@ public enum ContentBaseState<ContentStateType: ContentState> {
 
 public protocol ContentState {
     associatedtype ViewType: View
-    var view: ViewType { get }
+    
+    @ViewBuilder
+    func viewForState(or content: AnyView) -> ViewType
 }
 
 private enum ContentMode {
@@ -35,41 +40,17 @@ private enum ContentMode {
 }
 
 public struct DynamicContent<ContentStateType: ContentState, ContentViewType: View>: View {
-    @Binding public var state: ContentBaseState<ContentStateType>
+    @Binding public var state: ContentStateType
     
     private var contentView: () -> ContentViewType
     
-//    private mode: ContentMode
-    
     public var body: some View {
-        switch state {
-        case .content:
-            return AnyView(contentView())
-        case let .other(state):
-            return AnyView(state.view)
-        }
+        state.viewForState(or: AnyView(self.contentView()))
     }
 }
-
-//public extension DynamicContent where ContentStateType == ContentDefaultState {
-//    init(stateBainding: ContentBaseState<ContentDefaultState>, contentView: @escaping (() -> ContentViewType)) {
-//        self.init(state: stateBainding, contentView: contentView)
-//    }
-//}
 
 public extension DynamicContent {
-//    init(stateType: ContentStateType.Type, contentView: @escaping (() -> ContentViewType)) {
-//        self.contentView = contentView
-//    }
-    
-    init(stateBinding: Binding<ContentBaseState<ContentStateType>>, contentView: @escaping (() -> ContentViewType)) {
+    init(stateBinding: Binding<ContentStateType>, contentView: @escaping (() -> ContentViewType)) {
         self.init(state: stateBinding, contentView: contentView)
-//        self.contentView = contentView
-//        self.state = .other(state: initialState)
     }
 }
-
-
-
-
-
